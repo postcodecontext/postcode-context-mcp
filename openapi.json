@@ -1,0 +1,2735 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Postcode Context - Great Britain Demographics & Property Intelligence API",
+    "version": "1.0.0",
+    "description": "Give AI agents real-world Great Britain location intelligence. High-performance, 100% stateless Great Britain postcode context API and Remote MCP Server running on Cloudflare Workers edge nodes. Turn any postcode into structured property, demographic, energy, school, healthcare, and connectivity context in one call. Covers England, Scotland, and Wales (Northern Ireland BT postcodes strictly excluded to avoid proprietary PAF or LPS fees). Unifies 19 statutory open datasets: ONS Census 2021, ONSPD 2026, Ordnance Survey OS OpenData, Royal Mail Gridlink allocation, HM Land Registry 3-year rolling transactions (2024–2026), Registers of Scotland property transactions (2023–2025), Open EPC domestic register, Scottish EPC Register, English Indices of Deprivation (IoD 2025), Welsh WIMD 2025, Scottish SIMD 2020v2, Ofcom Connected Nations 2026 broadband, DfE Get Information About Schools (GIAS), Care Quality Commission (CQC) healthcare registries, Scottish/Welsh schools directories, NHS Scotland/Wales directories, NaPTAN transit nodes, and ORR station footfall. Features pre-synthesised AI affluence scores, multi-criteria comparisons, and dense context briefings. Settle per-request via x402 v2 (USDC on Base Mainnet eip155:8453). Active baseline v2026.10 updated October 2026. Not for credit, insurance, lending, employment, or tenant-screening decisions.",
+    "contact": {
+      "name": "Postcode Context Support",
+      "url": "https://api.postcodecontext.uk"
+    },
+    "license": {
+      "name": "Proprietary API Service Terms (Underlying Data: Open Government Licence v3.0 & Devolved Open Data)",
+      "url": "https://api.postcodecontext.uk/terms"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.postcodecontext.uk",
+      "description": "Production Edge Anycast Network"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Demographics",
+      "description": "ONS Census 2021/2022 demographics, NS-SeC occupations, and population structure across Great Britain"
+    },
+    {
+      "name": "Great Britain Property",
+      "description": "HM Land Registry & Registers of Scotland 3-year transaction prices, GBP/sqm valuations, and EPC energy efficiency ratings"
+    },
+    {
+      "name": "Geospatial",
+      "description": "Administrative, statistical, and postal hierarchies (LSOA, MSOA, Data Zones, Local Authorities, NaPTAN)"
+    },
+    {
+      "name": "Census",
+      "description": "Decennial population census data from Office for National Statistics (ONS) and National Records of Scotland (NRS)"
+    },
+    {
+      "name": "Attribution",
+      "description": "Statutory provenance, Crown copyright notices, and open data register citations"
+    },
+    {
+      "name": "Legal",
+      "description": "Regulatory, licensing, and compliance terms governing API access and dataset reuse"
+    },
+    {
+      "name": "Licensing",
+      "description": "Open Government Licence v3.0 metadata, copyright ownership, and downstream reuse terms"
+    },
+    {
+      "name": "Open Data",
+      "description": "Statutory public sector open data integration across 19 authoritative UK sources"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "x402Auth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "PAYMENT-SIGNATURE",
+        "description": "x402 v2 payment signature for on-chain USDC micropayments on Base Mainnet (eip155:8453). Rates: $0.005/postcode, $0.010/compare, $0.050/batch, $0.005/outcode."
+      }
+    },
+    "schemas": {
+      "SummaryForAI": {
+        "type": "object",
+        "required": [
+          "ai_context_briefing",
+          "primary_persona_tag",
+          "affluence_tier",
+          "b2c_spending_propensity"
+        ],
+        "properties": {
+          "ai_context_briefing": {
+            "type": "string",
+            "description": "Pre-synthesised dense natural language summary designed for LLM context window injection"
+          },
+          "primary_persona_tag": {
+            "type": "string",
+            "description": "Target marketing and socio-economic persona archetype"
+          },
+          "affluence_tier": {
+            "type": "string",
+            "enum": [
+              "Ultra-Prime",
+              "Affluent",
+              "Mid-Market",
+              "Modest-Income",
+              "High-Deprivation"
+            ],
+            "description": "Categorical socio-economic bracket segmenting Great Britain residential neighbourhoods into 5 macro cohorts"
+          },
+          "b2c_spending_propensity": {
+            "type": "string",
+            "description": "Inferred neighbourhood consumer expenditure profile derived from local affluence tier and tenure. Represents a macro area characteristic, not an observed financial record of an individual household."
+          },
+          "affluence_score_100": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Composite socio-economic score from 1 to 100 (weighted: 35% modelled income, 25% human capital qualifications/NS-SeC, 25% IMD deprivation freedom, 15% homeownership equity; ~10 points represents ~1 national decile shift)"
+          },
+          "family_suitability_score_100": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Composite family suitability score from 1 to 100 (weighted: 40% statutory crime safety decile, 30% statutory education/skills deprivation decile, 30% child and parenting-age demographic density)"
+          },
+          "commuter_connectivity_score_100": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Composite multi-modal connectivity score from 1 to 100 (evaluating straight-line geodesic distance to nearest rail/rapid transit station, strategic intercity hub tier, zero-car transit reliance density, broadband speed tier, and affluence)"
+          },
+          "property_value_index": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Relative property valuation index benchmarked against prime central London baseline (£16,200/sqm ceiling = 100)"
+          }
+        }
+      },
+      "Location": {
+        "type": "object",
+        "required": [
+          "postcode",
+          "clean_postcode",
+          "outcode",
+          "incode",
+          "lsoa_code",
+          "lsoa_name",
+          "local_authority",
+          "constituency",
+          "region_or_nation",
+          "rural_urban_classification",
+          "latitude",
+          "longitude"
+        ],
+        "properties": {
+          "postcode": {
+            "type": "string",
+            "example": "SW1A 1AA"
+          },
+          "clean_postcode": {
+            "type": "string",
+            "example": "SW1A1AA"
+          },
+          "outcode": {
+            "type": "string",
+            "example": "SW1A"
+          },
+          "incode": {
+            "type": "string",
+            "example": "1AA"
+          },
+          "lsoa_code": {
+            "type": "string",
+            "example": "E01004736"
+          },
+          "msoa_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "E02000977"
+          },
+          "lsoa_name": {
+            "type": "string",
+            "example": "Westminster 018C"
+          },
+          "local_authority": {
+            "type": "string",
+            "example": "Westminster"
+          },
+          "constituency": {
+            "type": "string",
+            "example": "Cities of London and Westminster"
+          },
+          "region_or_nation": {
+            "type": "string",
+            "example": "London"
+          },
+          "rural_urban_classification": {
+            "type": "string",
+            "example": "Urban major conurbation"
+          },
+          "latitude": {
+            "type": "number",
+            "example": 51.501009
+          },
+          "longitude": {
+            "type": "number",
+            "example": -0.141588
+          }
+        }
+      },
+      "PropertyAndEnergy": {
+        "type": "object",
+        "required": [
+          "price_basis"
+        ],
+        "properties": {
+          "median_house_price_gbp": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "example": 1250000,
+            "description": "HM Land Registry (E&W 2024–2026) and Registers of Scotland (Scotland 2023–2025) 3-year rolling median transaction price in GBP (nullable for 0-transaction areas)"
+          },
+          "price_per_sqm_gbp": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "example": 14200,
+            "description": "Synthetic property valuation benchmark joining 3-year rolling median transaction prices (HMLR / RoS) with domestic mean internal floor areas (Open EPC / Scottish EPC Register) at postcode level (nullable if no EPC or sales recorded)"
+          },
+          "price_basis": {
+            "type": "object",
+            "required": [
+              "resolution",
+              "window",
+              "n"
+            ],
+            "properties": {
+              "resolution": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "postcode",
+                  "data_zone",
+                  "outcode_district",
+                  "local_authority",
+                  null
+                ],
+                "description": "Spatial granularity of the median property valuation"
+              },
+              "window": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "example": "2024–2026",
+                "description": "Rolling temporal transaction window (2024–2026 for England & Wales, 2023–2025 for Scotland)"
+              },
+              "n": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "example": 18,
+                "description": "Number of recorded transactions in rolling window used to compute median price"
+              }
+            }
+          },
+          "sales_volume_3yr": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "example": 118,
+            "description": "Recorded sales volume in 3-year window"
+          },
+          "dominant_property_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Flat/Maisonette"
+          },
+          "avg_floor_area_sqm": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "example": 88
+          },
+          "epc_rating_current": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "C"
+          },
+          "epc_rating_potential": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "B"
+          },
+          "retrofit_upside_potential": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pre_1930_housing_pct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "example": 34
+          }
+        }
+      },
+      "DeprivationDeciles": {
+        "type": "object",
+        "required": [
+          "_scale_explanation"
+        ],
+        "properties": {
+          "_scale_explanation": {
+            "type": "string"
+          },
+          "imd_overall_decile": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10
+          },
+          "imd_overall_rank": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "income_deprivation_decile": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10
+          },
+          "employment_deprivation_decile": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10
+          },
+          "education_skills_decile": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10
+          },
+          "health_deprivation_decile": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10
+          },
+          "crime_safety_decile": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Statutory Crime Deprivation Decile (1-10) from the English IoD 2025, Welsh WIMD 2025, and Scottish SIMD 2020 (1 = highest recorded crime deprivation nationally, 10 = lowest recorded crime deprivation / safest 10%). Sourced from multi-year police records per capita at LSOA level. Represents neighbourhood historical baseline, not individual personal victimisation risk."
+          },
+          "housing_barriers_decile": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10
+          },
+          "living_environment_decile": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10
+          }
+        }
+      },
+      "CensusDemographics": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "population_density_per_sqkm": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "example": 6800
+          },
+          "est_median_household_income_gbp": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "example": 29500,
+            "description": "Heuristic small-area estimate of annual median gross disposable household income in GBP (LSOA/Data Zone level) derived from a linear formula weighting DWP/HMRC income deprivation deciles, Census NS-SeC managerial occupation shares, and Level 4 qualifications, clamped at £21,000–£95,000. Not an observed Census return."
+          },
+          "tenure_breakdown_pct": {
+            "type": "object",
+            "properties": {
+              "owned_outright": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "mortgaged": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "private_rented": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "social_rented": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "qualifications_pct": {
+            "type": "object",
+            "properties": {
+              "degree_or_higher_level4_plus": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "no_qualifications": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "ns_sec_managerial_professional_pct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "economically_active_employed_pct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "retired_pct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "student_pct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "work_from_home_pct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "car_ownership_pct": {
+            "type": "object",
+            "properties": {
+              "zero_cars": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "two_or_more_cars": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "age_distribution_pct": {
+            "type": "object",
+            "properties": {
+              "age_0_to_15": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "age_16_to_29": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "age_30_to_44": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "age_45_to_64": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "age_65_plus": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "DigitalInfrastructure": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "broadband_speed_tier_mbps": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "example": 74.2,
+            "description": "Estimated fixed broadband download speed tier in Mbps (350, 120, 80, or 68.5 Mbps baseline derived from Ofcom Connected Nations availability brackets)"
+          },
+          "median_download_mbps": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "example": 74.2,
+            "deprecated": true,
+            "description": "Legacy backwards-compatibility alias for broadband_speed_tier_mbps (modelled Ofcom availability tier, not an observed speed-test median)"
+          },
+          "gigabit_availability_pct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "example": 89.4
+          }
+        }
+      },
+      "LandmarkContext": {
+        "type": "object",
+        "required": [
+          "is_national_landmark"
+        ],
+        "properties": {
+          "is_national_landmark": {
+            "type": "boolean",
+            "example": true,
+            "description": "True if this postcode represents a major national landmark, royal palace, civic seat, or special non-geographic entity"
+          },
+          "landmark_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Buckingham Palace"
+          },
+          "landmark_category": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "Royal Residence",
+              "Government & Executive",
+              "Parliamentary & Civic",
+              "National Defence & Security",
+              "Central Banking & Financial",
+              "National Heritage & Cathedral",
+              "Diplomatic & Embassy",
+              "Academic & Historic Seat",
+              "Healthcare & Medical Research",
+              "Correctional & Institutional",
+              "National Sports & Culture",
+              "Major Transport Hub",
+              "Special Non-Geographic",
+              "Military Overseas & BFPO",
+              null
+            ],
+            "example": "Royal Residence"
+          },
+          "demographic_distortion_note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Census demographics reflect residential blocks in Westminster 018C (Wellington Barracks and rental flats towards Victoria), not the Royal Household."
+          }
+        }
+      },
+      "SchoolSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "ENG-101138"
+          },
+          "name": {
+            "type": "string",
+            "example": "St Matthew's School, Westminster"
+          },
+          "phase": {
+            "type": "string",
+            "example": "Primary"
+          },
+          "gender": {
+            "type": "string",
+            "example": "Mixed"
+          },
+          "religious_character": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Church of England"
+          },
+          "admissions_policy": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Non-selective"
+          },
+          "distance_km": {
+            "type": "number",
+            "example": 0.54
+          }
+        }
+      },
+      "EducationAndSchools": {
+        "type": "object",
+        "properties": {
+          "nearest_primary_school": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SchoolSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "nearest_secondary_school": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SchoolSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "HealthcareSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "CQC-1-12687408410"
+          },
+          "name": {
+            "type": "string",
+            "example": "Medloop"
+          },
+          "care_type": {
+            "type": "string",
+            "example": "GP Practice"
+          },
+          "distance_km": {
+            "type": "number",
+            "example": 0.48
+          },
+          "regulator": {
+            "type": "string",
+            "example": "CQC"
+          },
+          "rating": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Good"
+          },
+          "inspection_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "22/Jan/2024"
+          }
+        }
+      },
+      "HealthcareAndServices": {
+        "type": "object",
+        "properties": {
+          "nearest_gp_surgery": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HealthcareSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "StationSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "9100MNCRVIC"
+          },
+          "name": {
+            "type": "string",
+            "example": "Manchester Victoria"
+          },
+          "station_type": {
+            "type": "string",
+            "example": "National Rail"
+          },
+          "hub_type": {
+            "type": "string",
+            "enum": [
+              "national_hub",
+              "regional_hub",
+              "commuter_hub",
+              "local_station"
+            ],
+            "example": "national_hub",
+            "description": "Station hierarchy classification based on ORR annual passenger footfall: national_hub (>=10M/yr or Cat A), regional_hub (>=2M/yr or Cat B), commuter_hub (500k-2M/yr), or local_station (<500k/yr)."
+          },
+          "distance_km": {
+            "type": "number",
+            "example": 0.35
+          }
+        }
+      },
+      "Transit": {
+        "type": "object",
+        "properties": {
+          "nearest_station": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StationSummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Closest rail, metro, or tram stop of any category"
+          },
+          "nearest_intercity_hub": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StationSummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Closest primary mainline intercity railway hub (>= 2M annual passengers or Network Rail Category A/B interchange)"
+          }
+        }
+      },
+      "BillingReceipt": {
+        "type": "object",
+        "description": "Settled on-chain transaction receipt metadata under x402 payment specifications",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "example": "x402_paid_settled"
+          },
+          "transactionHash": {
+            "type": "string",
+            "example": "0x123..."
+          },
+          "payer": {
+            "type": "string",
+            "example": "0xabc..."
+          }
+        }
+      },
+      "PostcodeIntelligenceResponse": {
+        "type": "object",
+        "description": "Comprehensive Great Britain postcode socio-economic profile. Sliced views prune optional metric blocks to optimize LLM context window token efficiency: full (complete 113-metric profile, default), brief/summary/ai (summary_for_ai, location, _attribution, _licensing, _billing, ~80 tokens), property (property_and_energy, digital_infrastructure), demographics (deprivation_deciles, census_demographics), education (schools_and_education), healthcare (healthcare_and_services), transit (transit), or services (education, healthcare, transit, digital_infrastructure). The _attribution property is strictly required and preserved across all view slices in accordance with statutory Open Government Licence v3.0, Ordnance Survey OpenData, and Crown copyright requirements.",
+        "required": [
+          "_attribution"
+        ],
+        "properties": {
+          "match_type": {
+            "type": "string",
+            "enum": [
+              "exact_unit",
+              "district_fallback"
+            ],
+            "example": "exact_unit",
+            "description": "Resolution accuracy: exact_unit (matched unit postcode in directory) or district_fallback (aggregated outcode postal district profile)"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "approximate"
+            ],
+            "example": "exact",
+            "description": "Downstream agent confidence indicator"
+          },
+          "requested_postcode": {
+            "type": "string",
+            "example": "SW1A 1AA",
+            "description": "Normalized display representation of the requested postcode"
+          },
+          "resolved_district": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "SW1A",
+            "description": "Outward postal district code if fallback was applied (null on exact unit matches)"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Exact unit postcode not yet in Census/ONS directory. Returning aggregated SW1A district profile.",
+            "description": "Explanatory contextual note for fallback profiles (null on exact unit matches)"
+          },
+          "summary_for_ai": {
+            "$ref": "#/components/schemas/SummaryForAI"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "property_and_energy": {
+            "$ref": "#/components/schemas/PropertyAndEnergy"
+          },
+          "deprivation_deciles": {
+            "$ref": "#/components/schemas/DeprivationDeciles"
+          },
+          "census_demographics": {
+            "$ref": "#/components/schemas/CensusDemographics"
+          },
+          "digital_infrastructure": {
+            "$ref": "#/components/schemas/DigitalInfrastructure"
+          },
+          "schools_and_education": {
+            "$ref": "#/components/schemas/EducationAndSchools"
+          },
+          "healthcare_and_services": {
+            "$ref": "#/components/schemas/HealthcareAndServices"
+          },
+          "transit": {
+            "$ref": "#/components/schemas/Transit"
+          },
+          "landmark_context": {
+            "$ref": "#/components/schemas/LandmarkContext"
+          },
+          "_disclaimer": {
+            "type": "string",
+            "description": "Statutory non-advice legal disclaimer"
+          },
+          "_attribution": {
+            "type": "string",
+            "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement (mandatory across all views)"
+          },
+          "_licensing": {
+            "$ref": "#/components/schemas/LicensingInfo"
+          },
+          "_billing": {
+            "$ref": "#/components/schemas/BillingReceipt"
+          }
+        }
+      },
+      "AttributionSourceItem": {
+        "type": "object",
+        "required": [
+          "dataset",
+          "provider",
+          "coverage",
+          "licence",
+          "licence_url",
+          "mandatory_statement",
+          "vintage",
+          "last_updated",
+          "update_frequency"
+        ],
+        "properties": {
+          "dataset": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "coverage": {
+            "type": "string"
+          },
+          "licence": {
+            "type": "string"
+          },
+          "licence_url": {
+            "type": "string"
+          },
+          "mandatory_statement": {
+            "type": "string"
+          },
+          "vintage": {
+            "type": "string"
+          },
+          "last_updated": {
+            "type": "string"
+          },
+          "update_frequency": {
+            "type": "string"
+          }
+        }
+      },
+      "LicensingInfo": {
+        "type": "object",
+        "required": [
+          "licence",
+          "licence_url",
+          "territorial_scope",
+          "attribution_summary",
+          "database_last_updated",
+          "baseline_vintage",
+          "update_cadence"
+        ],
+        "properties": {
+          "licence": {
+            "type": "string",
+            "example": "Open Government Licence v3.0"
+          },
+          "licence_url": {
+            "type": "string",
+            "example": "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+          },
+          "territorial_scope": {
+            "type": "string",
+            "example": "Great Britain (England, Scotland, Wales)"
+          },
+          "attribution_summary": {
+            "type": "string"
+          },
+          "attribution_url": {
+            "type": "string",
+            "example": "https://api.postcodecontext.uk/api/v1/attribution"
+          },
+          "database_last_updated": {
+            "type": "string",
+            "example": "2026-10-23T11:35:00Z"
+          },
+          "baseline_vintage": {
+            "type": "string",
+            "example": "2026.10"
+          },
+          "update_cadence": {
+            "type": "string",
+            "example": "Monthly active refresh (HMLR, RoS & EPC); Quarterly (ONSPD); Periodic (Census & IMD)"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttributionSourceItem"
+            }
+          }
+        }
+      },
+      "OutcodeSummaryResponse": {
+        "type": "object",
+        "description": "District-wide demographic, housing valuation, and socio-economic aggregation across all registered postcodes in a Great Britain outward postal district (e.g. BB7, SW1A, EH1, CF10).",
+        "required": [
+          "outcode",
+          "_attribution"
+        ],
+        "properties": {
+          "outcode": {
+            "type": "string",
+            "example": "BB7",
+            "description": "Outward postal district code (e.g. BB7, SW1A, EH1, CF10)"
+          },
+          "total_postcodes": {
+            "type": "integer",
+            "example": 1420,
+            "description": "Total number of live registered unit postcodes aggregated within this outward district"
+          },
+          "district_median_house_price_gbp": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "example": 358398,
+            "description": "District-wide median residential transaction price in GBP from 3-year rolling sales (HMLR / RoS)"
+          },
+          "district_avg_price_per_sqm_gbp": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "example": 2480,
+            "description": "District-wide mean transaction price per internal square metre in GBP"
+          },
+          "average_affluence_score_100": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "example": 62,
+            "description": "District-wide mean composite affluence score on a 1–100 scale"
+          },
+          "dominant_affluence_tier": {
+            "type": "string",
+            "enum": [
+              "Ultra-Prime",
+              "Affluent",
+              "Mid-Market",
+              "Modest-Income",
+              "High-Deprivation"
+            ],
+            "example": "Mid-Market",
+            "description": "Most common affluence tier across unit postcodes within the district"
+          },
+          "imd_overall_decile_range": {
+            "type": "object",
+            "description": "Spread of statutory Index of Multiple Deprivation deciles across constituent neighborhoods within the district (1 = most deprived 10% nationally, 10 = least deprived / safest 10%)",
+            "required": [
+              "min",
+              "max"
+            ],
+            "example": {
+              "min": 3,
+              "max": 10
+            },
+            "properties": {
+              "min": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1,
+                "maximum": 10,
+                "example": 3,
+                "description": "Lowest (most deprived) IMD decile recorded in any constituent LSOA or Data Zone in this district"
+              },
+              "max": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1,
+                "maximum": 10,
+                "example": 10,
+                "description": "Highest (least deprived) IMD decile recorded in any constituent LSOA or Data Zone in this district"
+              }
+            }
+          },
+          "top_personas": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "Rural Agrarian & Village Communities"
+            },
+            "example": [
+              "Rural Agrarian & Village Communities",
+              "Comfortable Suburban Achievers"
+            ],
+            "description": "Ranked list of dominant demographic and socio-economic persona archetypes in the district"
+          },
+          "sample_postcodes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "BB7 1AA"
+            },
+            "example": [
+              "BB7 1AA",
+              "BB7 1AB",
+              "BB7 1AD",
+              "BB7 1AE",
+              "BB7 1AF"
+            ],
+            "description": "Representative sample of unit postcodes situated within this district"
+          },
+          "district_context_briefing": {
+            "type": "string",
+            "example": "Outward postal district BB7 encompasses 1420 registered postcode sector areas in Ribble Valley (North West). Baseline property values median at £358,398 (£2,480/sqm) with composite district affluence scored at 62/100 (Mid-Market). IMD deprivation ranges from decile 3 to 10.",
+            "description": "Pre-synthesized natural language summary designed for LLM context window ingestion"
+          },
+          "schools_and_education": {
+            "$ref": "#/components/schemas/EducationAndSchools",
+            "description": "Educational infrastructure proximate to the district"
+          },
+          "healthcare_and_services": {
+            "$ref": "#/components/schemas/HealthcareAndServices",
+            "description": "Healthcare facilities proximate to the district"
+          },
+          "transit": {
+            "$ref": "#/components/schemas/Transit",
+            "description": "Public transport nodes proximate to the district"
+          },
+          "_disclaimer": {
+            "type": "string",
+            "example": "PostcodeContext provides automated statistical intelligence for informational purposes only.",
+            "description": "Statutory non-advice legal disclaimer"
+          },
+          "_attribution": {
+            "type": "string",
+            "example": "Contains OS data © Crown copyright and database right 2026. Contains Royal Mail data © Royal Mail copyright and Database right 2026. Contains National Records of Scotland data. Licensed under OGL v3.0.",
+            "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement"
+          },
+          "_licensing": {
+            "$ref": "#/components/schemas/LicensingInfo",
+            "description": "Statutory attribution and licensing metadata across data providers"
+          },
+          "_billing": {
+            "$ref": "#/components/schemas/BillingReceipt",
+            "description": "Settled on-chain transaction receipt metadata"
+          }
+        }
+      },
+      "ComparisonSynthesis": {
+        "type": "object",
+        "description": "Automated synthesis highlighting extremes, value outliers, and comparative trade-offs",
+        "properties": {
+          "highest_affluence": {
+            "type": "object",
+            "properties": {
+              "postcode": {
+                "type": "string",
+                "example": "SW1A 1AA"
+              },
+              "score": {
+                "type": "integer",
+                "example": 94
+              },
+              "tier": {
+                "type": "string",
+                "example": "Ultra-Prime"
+              }
+            }
+          },
+          "lowest_crime": {
+            "type": "object",
+            "properties": {
+              "postcode": {
+                "type": "string",
+                "example": "BB7 3BB"
+              },
+              "decile": {
+                "type": "integer",
+                "example": 10
+              }
+            }
+          },
+          "lowest_price_per_sqm": {
+            "type": "object",
+            "properties": {
+              "postcode": {
+                "type": "string",
+                "example": "BB7 3BB"
+              },
+              "price_per_sqm_gbp": {
+                "type": "integer",
+                "example": 6462
+              }
+            }
+          },
+          "fastest_broadband": {
+            "type": "object",
+            "properties": {
+              "postcode": {
+                "type": "string",
+                "example": "BB7 3BB"
+              },
+              "broadband_speed_tier_mbps": {
+                "type": "number",
+                "example": 350
+              }
+            }
+          },
+          "highest_family_score": {
+            "type": "object",
+            "properties": {
+              "postcode": {
+                "type": "string",
+                "example": "BB7 3BB"
+              },
+              "score": {
+                "type": "integer",
+                "example": 82
+              }
+            }
+          },
+          "metrics_summary": {
+            "type": "array",
+            "description": "Raw underlying comparison metrics returned side-by-side for objective multi-criteria agent evaluation",
+            "items": {
+              "type": "object",
+              "properties": {
+                "postcode": {
+                  "type": "string",
+                  "example": "SW1A 1AA"
+                },
+                "affluence_score_100": {
+                  "type": "number",
+                  "example": 94
+                },
+                "affluence_tier": {
+                  "type": "string",
+                  "example": "Ultra-Prime"
+                },
+                "crime_safety_decile": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "example": 6
+                },
+                "median_house_price_gbp": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "example": 1450000
+                },
+                "price_per_sqm_gbp": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "example": 14500
+                },
+                "broadband_speed_tier_mbps": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "example": 120
+                },
+                "family_suitability_score_100": {
+                  "type": "number",
+                  "example": 45
+                }
+              }
+            }
+          },
+          "scale_directions": {
+            "type": "object",
+            "description": "Explicit documentation of score polarities and caveats for calling agents",
+            "properties": {
+              "affluence_score_100": {
+                "type": "string",
+                "example": "Higher is more affluent (1-100 scale, calibrated against national deciles)"
+              },
+              "crime_safety_decile": {
+                "type": "string",
+                "example": "Higher is safer (Decile 10 = lowest recorded crime per capita; Decile 1 = highest recorded crime)"
+              },
+              "price_per_sqm_gbp": {
+                "type": "string",
+                "example": "Lower represents lower nominal cost per unit area (entry barrier), though not inherently superior quality"
+              },
+              "broadband_speed_tier_mbps": {
+                "type": "string",
+                "example": "Higher indicates faster fixed-line broadband download throughput tier"
+              },
+              "family_suitability_score_100": {
+                "type": "string",
+                "example": "Higher indicates greater family orientation (evaluates statutory crime safety, education and skills deprivation deciles, and child/parenting household demographics)"
+              }
+            }
+          },
+          "synthesis_notes": {
+            "type": "string",
+            "example": "SW1A 1AA commands higher property prices per sqm and high affluence (94), while BB7 3BB (Dunsop Bridge, centre of GB) offers superior family suitability and lowest crime."
+          },
+          "comparability_caveats": {
+            "type": "array",
+            "description": "Cross-border statutory methodology caveats when comparing postcodes across England, Scotland, or Wales",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Cross-nation comparison between England and Scotland: Indices of Multiple Deprivation (English IoD 2025, Welsh WIMD 2025, Scottish SIMD 2020) evaluate relative ranks strictly within each sovereign home nation and are not directly equivalent across borders."
+            ]
+          }
+        }
+      },
+      "CohortSummary": {
+        "type": "object",
+        "description": "Macro cohort statistics across all enriched postcodes in the batch",
+        "properties": {
+          "total_requested": {
+            "type": "integer",
+            "example": 3
+          },
+          "total_matched": {
+            "type": "integer",
+            "example": 3
+          },
+          "average_affluence_score": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "example": 78
+          },
+          "average_house_price_gbp": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "example": 545000
+          },
+          "dominant_persona": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Affluent Suburban"
+          },
+          "top_3_highest_value_postcodes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "postcode": {
+                  "type": "string",
+                  "example": "SW1A 1AA"
+                },
+                "median_house_price_gbp": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "example": 1250000
+                },
+                "affluence_score_100": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "example": 94
+                }
+              }
+            }
+          }
+        }
+      },
+      "PaymentRequiredPayload": {
+        "type": "object",
+        "required": [
+          "x402Version",
+          "resource",
+          "accepts"
+        ],
+        "description": "x402 v2 payment requirements challenge returned when an unauthenticated or unpaid request hits a paid route.",
+        "properties": {
+          "x402Version": {
+            "type": "integer",
+            "example": 2,
+            "description": "x402 protocol specification version (v2)"
+          },
+          "error": {
+            "type": "string",
+            "example": "Payment required",
+            "description": "Error message indicating payment authorization is required"
+          },
+          "resource": {
+            "type": "object",
+            "required": [
+              "url"
+            ],
+            "description": "Target resource metadata being requested",
+            "properties": {
+              "url": {
+                "type": "string",
+                "example": "https://api.postcodecontext.uk/api/v1/postcode/SW1A1AA",
+                "description": "Fully qualified URL of the protected resource"
+              },
+              "description": {
+                "type": "string",
+                "example": "GET /api/v1/postcode/{postcode} - Single Postcode Socio-Economic Profile"
+              },
+              "mimeType": {
+                "type": "string",
+                "example": "application/json"
+              },
+              "serviceName": {
+                "type": "string",
+                "example": "Postcode Context"
+              }
+            }
+          },
+          "accepts": {
+            "type": "array",
+            "description": "List of acceptable payment terms and criteria conforming to x402 v2 specification",
+            "items": {
+              "type": "object",
+              "required": [
+                "scheme",
+                "network",
+                "amount",
+                "asset",
+                "payTo",
+                "maxTimeoutSeconds"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "example": "exact",
+                  "description": "Settlement scheme mechanism"
+                },
+                "network": {
+                  "type": "string",
+                  "example": "eip155:8453",
+                  "description": "CAIP-2 network identifier (Base Mainnet)"
+                },
+                "amount": {
+                  "type": "string",
+                  "example": "5000",
+                  "description": "Amount required in atomic base token units (e.g. 5000 atomic units = $0.005 USDC at 6 decimals)"
+                },
+                "maxAmountRequired": {
+                  "type": "string",
+                  "example": "5000",
+                  "description": "Maximum amount required in atomic base token units (alias for amount for compatibility with various x402 v2 facilitators)"
+                },
+                "price": {
+                  "type": "string",
+                  "example": "$0.005",
+                  "description": "Human-readable price in fiat/USD units"
+                },
+                "asset": {
+                  "type": "string",
+                  "example": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                  "description": "USDC smart contract address on Base"
+                },
+                "payTo": {
+                  "type": "string",
+                  "example": "0x8ab7568ac097523e81a94644235fcf19a2b85670",
+                  "description": "Designated payee EVM wallet address"
+                },
+                "maxTimeoutSeconds": {
+                  "type": "integer",
+                  "example": 300,
+                  "description": "Maximum validity window for payment signature settlement in seconds"
+                },
+                "extra": {
+                  "type": "object",
+                  "description": "Network or token specific metadata",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "USD Coin"
+                    },
+                    "version": {
+                      "type": "string",
+                      "example": "2"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "x402": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "integer",
+                "example": 2
+              },
+              "network": {
+                "type": "string",
+                "example": "eip155:8453 (Base Mainnet)"
+              },
+              "asset": {
+                "type": "string",
+                "example": "USDC"
+              },
+              "header_required": {
+                "type": "string",
+                "example": "PAYMENT-SIGNATURE"
+              }
+            }
+          }
+        }
+      },
+      "NotFoundErrorResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "billed"
+        ],
+        "description": "Statutory Fair Exchange 404 response guaranteeing zero payment settlement or charge for postcodes or districts not found in database or outside territorial coverage.",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Postcode not found in ONS directory",
+            "description": "Error category (e.g. not found, Northern Ireland excluded, Crown Dependencies excluded)"
+          },
+          "postcode": {
+            "type": "string",
+            "example": "SW1A 9ZZ",
+            "description": "Normalized requested postcode if applicable"
+          },
+          "outcode": {
+            "type": "string",
+            "example": "BT1",
+            "description": "Normalized requested outward postal district if applicable"
+          },
+          "billed": {
+            "type": "boolean",
+            "example": false,
+            "description": "Strict guarantee that zero USDC was billed, debited, or settled for this lookup"
+          },
+          "message": {
+            "type": "string",
+            "example": "No match found. Zero USDC was settled or deducted.",
+            "description": "Explanatory contextual note for calling agents"
+          }
+        }
+      }
+    },
+    "responses": {
+      "PaymentRequired402": {
+        "description": "Payment Required: Settle via x402 protocol (USDC on Base Mainnet, eip155:8453). Unpaid requests receive a structured x402 challenge with payment requirements in both PAYMENT-REQUIRED header and JSON body.",
+        "headers": {
+          "PAYMENT-REQUIRED": {
+            "description": "Base64-encoded x402 v2 payment requirements JSON string defining payment schemes, chain ID, recipient address, and asset specifications",
+            "schema": {
+              "type": "string",
+              "example": "eyJ4NDAyVmVyc2lvbiI6MiwiZXJyb3IiOiJQYXltZW50IHJlcXVpcmVkIiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly9hcGkucG9zdGNvZGVjb250ZXh0LnVrL2FwaS92MS9wb3N0Y29kZS9TVzFBMUFBIiwiZGVzY3JpcHRpb24iOiJHRVQgL2FwaS92MS9wb3N0Y29kZS97cG9zdGNvZGV9IC0gU2luZ2xlIFBvc3Rjb2RlIFNvY2lvLUVjb25vbWljIFByb2ZpbGUiLCJtaW1lVHlwZSI6ImFwcGxpY2F0aW9uL2pzb24ifSwiYWNjZXB0cyI6W3sic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiZWlwMTU1Ojg0NTMiLCJhbW91bnQiOiI1MDAwIiwibWF4QW1vdW50UmVxdWlyZWQiOiI1MDAwIiwicHJpY2UiOiIkMC4wMDUiLCJhc3NldCI6IjB4ODMzNTg5ZkNENmVEYjZFMDhmNGM3QzMyRDRmNzFiNTRiZEEwMjkxMyIsInBheVRvIjoiMHg4YWI3NTY4YWMwOTc1MjNlODFhOTQ2NDQyMzVmY2YxOWEyYjg1NjcwIiwibWF4VGltZW91dFNlY29uZHMiOjMwMCwiZXh0cmEiOnsibmFtZSI6IlVTRCBDb2luIiwidmVyc2lvbiI6IjIifX1dfQ=="
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/PaymentRequiredPayload"
+            }
+          }
+        }
+      },
+      "NotFound404": {
+        "description": "Resource not found in database or outside territorial coverage (Zero USDC deducted or settled)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/NotFoundErrorResponse"
+            }
+          }
+        }
+      },
+      "BadRequest400": {
+        "description": "Bad Request: Malformed input syntax, invalid parameters, or bad payload",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Invalid request parameters"
+                }
+              }
+            }
+          }
+        }
+      },
+      "RateLimit429": {
+        "description": "Too Many Requests: Rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Rate limit exceeded"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/v1/postcode/{postcode}": {
+      "get": {
+        "tags": [
+          "Demographics",
+          "Great Britain Property",
+          "Geospatial",
+          "Census"
+        ],
+        "summary": "Get Great Britain Postcode Intelligence Profile",
+        "description": "Returns full demographic, housing market, EPC energy efficiency, broadband, and deprivation indices for a single Great Britain postcode (England, Scotland, Wales). Normalises input automatically (accepts space, compact SW1A1AA, or URL-encoded + / %20).",
+        "operationId": "get_postcode_intelligence",
+        "x-mcp-tool-name": "lookup_postcode",
+        "x-aliases": [
+          "lookup_postcode"
+        ],
+        "security": [
+          {
+            "x402Auth": []
+          }
+        ],
+        "x-x402-price": "$0.005",
+        "x-x402-amount": "5000",
+        "x-x402-maxAmountRequired": "5000",
+        "x-x402-network": "eip155:8453",
+        "x-x402-asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "x-x402-payTo": "0x8ab7568ac097523e81a94644235fcf19a2b85670",
+        "parameters": [
+          {
+            "name": "postcode",
+            "in": "path",
+            "required": true,
+            "description": "Great Britain postcode (e.g. SW1A 1AA, BB7 3BB, EH1 1YZ, CF10 1EP). Accepts spaces, no spaces (SW1A1AA), or URL-encoded (+ / %20). Northern Ireland (BT) postcodes excluded.",
+            "schema": {
+              "type": "string",
+              "example": "SW1A 1AA"
+            }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "Slice target view: full (complete dataset, default), brief (or summary/ai, ~80 tokens brief), property (valuations & EPC), demographics (Census & IMD deciles), education (nearest schools & proximity), healthcare (nearest GP surgery), transit (rail & metro), or services (education, healthcare, transit & digital connectivity)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "full",
+                "brief",
+                "summary",
+                "ai",
+                "property",
+                "demographics",
+                "education",
+                "schools",
+                "healthcare",
+                "health",
+                "transit",
+                "transport",
+                "services",
+                "infrastructure"
+              ],
+              "default": "full"
+            }
+          },
+          {
+            "name": "exclude",
+            "in": "query",
+            "required": false,
+            "description": "Comma-separated domains to exclude from payload: schools, healthcare, transit (e.g. exclude=schools,healthcare,transit)",
+            "schema": {
+              "type": "string",
+              "example": "schools,healthcare,transit"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "description": "Export format: json (default), flat, csv, or markdown/md (GitHub Flavored Markdown)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json",
+                "flat",
+                "csv",
+                "markdown",
+                "md"
+              ],
+              "default": "json"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful postcode intelligence profile",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64-encoded settlement receipt confirming on-chain USDC payment execution (x402Version, transaction hash, network, and payer wallet)",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostcodeIntelligenceResponse"
+                }
+              },
+              "text/markdown": {
+                "schema": {
+                  "type": "string",
+                  "description": "GitHub Flavored Markdown export"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "description": "CSV data export"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest400"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired402"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound404"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimit429"
+          }
+        }
+      }
+    },
+    "/api/v1/compare": {
+      "post": {
+        "tags": [
+          "Demographics",
+          "Great Britain Property",
+          "Geospatial",
+          "Census"
+        ],
+        "summary": "Compare Great Britain Postcodes",
+        "description": "Compares 2 to 5 Great Britain postcodes side-by-side (England, Scotland, Wales) with an automated AI comparison ranking by affluence, crime safety, lowest price per sqm, broadband speed, and family suitability.",
+        "operationId": "compare_gb_postcodes",
+        "x-mcp-tool-name": "compare_postcodes",
+        "x-aliases": [
+          "compare_postcodes"
+        ],
+        "security": [
+          {
+            "x402Auth": []
+          }
+        ],
+        "x-x402-price": "$0.010",
+        "x-x402-amount": "10000",
+        "x-x402-maxAmountRequired": "10000",
+        "x-x402-network": "eip155:8453",
+        "x-x402-asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "x-x402-payTo": "0x8ab7568ac097523e81a94644235fcf19a2b85670",
+        "parameters": [
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "Slice target view for returned postcode profiles: full (complete dataset, default), brief (or summary/ai, ~80 tokens brief), property, demographics, education, healthcare, transit, or services",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "full",
+                "brief",
+                "summary",
+                "ai",
+                "property",
+                "demographics",
+                "education",
+                "schools",
+                "healthcare",
+                "health",
+                "transit",
+                "transport",
+                "services",
+                "infrastructure"
+              ],
+              "default": "full"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "description": "Export format: json (default), csv, or markdown/md (GitHub Flavored Markdown)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json",
+                "csv",
+                "markdown",
+                "md"
+              ],
+              "default": "json"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "postcodes"
+                ],
+                "properties": {
+                  "postcodes": {
+                    "type": "array",
+                    "description": "List of 2 to 5 Great Britain postcodes to compare (England, Scotland, Wales)",
+                    "minItems": 2,
+                    "maxItems": 5,
+                    "items": {
+                      "type": "string",
+                      "example": "SW1A 1AA"
+                    }
+                  }
+                }
+              },
+              "example": {
+                "postcodes": [
+                  "SW1A 1AA",
+                  "BB7 3BB"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Comparison analysis successfully generated",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64-encoded settlement receipt confirming on-chain USDC payment execution (x402Version, transaction hash, network, and payer wallet)",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "postcodes": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PostcodeIntelligenceResponse"
+                      }
+                    },
+                    "comparison_synthesis": {
+                      "$ref": "#/components/schemas/ComparisonSynthesis"
+                    },
+                    "_disclaimer": {
+                      "type": "string",
+                      "description": "Statutory non-advice legal disclaimer"
+                    },
+                    "_attribution": {
+                      "type": "string",
+                      "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement"
+                    },
+                    "_licensing": {
+                      "$ref": "#/components/schemas/LicensingInfo"
+                    },
+                    "_billing": {
+                      "$ref": "#/components/schemas/BillingReceipt"
+                    }
+                  }
+                }
+              },
+              "text/markdown": {
+                "schema": {
+                  "type": "string",
+                  "description": "GitHub Flavored Markdown export"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "description": "CSV data export"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest400"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired402"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound404"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimit429"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Demographics",
+          "Great Britain Property",
+          "Geospatial",
+          "Census"
+        ],
+        "summary": "Compare Great Britain Postcodes (Query String Alternative)",
+        "description": "Directly contrast 2 to 5 Great Britain postcodes via a comma-separated query string (e.g. ?postcodes=SW1A1AA,BB73BB). Matches the POST /compare capability, providing raw metric side-by-side matrices and automated LLM-ready trade-off synthesis.",
+        "operationId": "compare_gb_postcodes_get",
+        "x-mcp-tool-name": "compare_postcodes",
+        "x-aliases": [
+          "compare_postcodes"
+        ],
+        "security": [
+          {
+            "x402Auth": []
+          }
+        ],
+        "x-x402-price": "$0.010",
+        "x-x402-amount": "10000",
+        "x-x402-maxAmountRequired": "10000",
+        "x-x402-network": "eip155:8453",
+        "x-x402-asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "x-x402-payTo": "0x8ab7568ac097523e81a94644235fcf19a2b85670",
+        "parameters": [
+          {
+            "name": "postcodes",
+            "in": "query",
+            "required": true,
+            "description": "Comma-separated list of 2 to 5 Great Britain unit postcodes to compare (e.g. SW1A1AA,BB73BB or EH11YZ,CF101EP). Must contain at least 2 distinct postcodes. Note: ?pc= is also accepted at runtime as a shorthand query alias.",
+            "schema": {
+              "type": "string",
+              "example": "SW1A1AA,BB73BB"
+            }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "Slice target view across compared profiles: full (complete dataset per postcode, default), brief (or summary/ai, ~80 tokens brief), property, demographics, education, healthcare, transit, or services",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "full",
+                "brief",
+                "summary",
+                "ai",
+                "property",
+                "demographics",
+                "education",
+                "schools",
+                "healthcare",
+                "health",
+                "transit",
+                "transport",
+                "services",
+                "infrastructure"
+              ],
+              "default": "full"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "description": "Output format override: json (default application/json), markdown (or md, text/markdown tabular presentation), csv (RFC 4180 text/csv table of postcodes)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json",
+                "markdown",
+                "md",
+                "csv",
+                "flat"
+              ],
+              "default": "json"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comparison analysis successfully generated",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64-encoded settlement receipt confirming on-chain USDC payment execution (x402Version, transaction hash, network, and payer wallet)",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "postcodes": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PostcodeIntelligenceResponse"
+                      }
+                    },
+                    "comparison_synthesis": {
+                      "$ref": "#/components/schemas/ComparisonSynthesis"
+                    },
+                    "_disclaimer": {
+                      "type": "string",
+                      "description": "Statutory non-advice legal disclaimer"
+                    },
+                    "_attribution": {
+                      "type": "string",
+                      "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement"
+                    },
+                    "_licensing": {
+                      "$ref": "#/components/schemas/LicensingInfo"
+                    },
+                    "_billing": {
+                      "$ref": "#/components/schemas/BillingReceipt"
+                    }
+                  }
+                }
+              },
+              "text/markdown": {
+                "schema": {
+                  "type": "string",
+                  "description": "GitHub Flavored Markdown export"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "description": "CSV data export"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest400"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired402"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound404"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimit429"
+          }
+        }
+      }
+    },
+    "/api/v1/batch": {
+      "post": {
+        "tags": [
+          "Demographics",
+          "Great Britain Property",
+          "Geospatial",
+          "Census"
+        ],
+        "summary": "Batch Enrich Great Britain Postcodes",
+        "description": "High-throughput bulk enrichment of up to 50 Great Britain postcodes with cohort aggregation metrics (average affluence, dominant persona, and top property values across England, Scotland, Wales). Supports ?view= and ?format=markdown/csv.",
+        "operationId": "enrich_postcodes_batch",
+        "x-mcp-tool-name": "enrich_postcodes",
+        "x-aliases": [
+          "enrich_postcodes"
+        ],
+        "security": [
+          {
+            "x402Auth": []
+          }
+        ],
+        "x-x402-price": "$0.050",
+        "x-x402-amount": "50000",
+        "x-x402-maxAmountRequired": "50000",
+        "x-x402-network": "eip155:8453",
+        "x-x402-asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "x-x402-payTo": "0x8ab7568ac097523e81a94644235fcf19a2b85670",
+        "parameters": [
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "Slice target view across batch results: brief (~80 tokens brief summary, default to preserve context window budget), full (complete dataset per postcode), property, demographics, education, healthcare, transit, or services.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "full",
+                "brief",
+                "summary",
+                "ai",
+                "property",
+                "demographics",
+                "education",
+                "schools",
+                "healthcare",
+                "health",
+                "transit",
+                "transport",
+                "services",
+                "infrastructure"
+              ],
+              "default": "brief"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "description": "Export format: json (default), flat, csv, or markdown/md (GitHub Flavored Markdown)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json",
+                "flat",
+                "csv",
+                "markdown",
+                "md"
+              ],
+              "default": "json"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "postcodes"
+                ],
+                "properties": {
+                  "postcodes": {
+                    "type": "array",
+                    "description": "List of 1 to 50 Great Britain postcodes to enrich",
+                    "minItems": 1,
+                    "maxItems": 50,
+                    "items": {
+                      "type": "string",
+                      "example": "SW1A 1AA"
+                    }
+                  }
+                }
+              },
+              "example": {
+                "postcodes": [
+                  "SW1A 1AA",
+                  "BB7 3BB",
+                  "EH1 1YZ"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Batch enrichment and cohort summary completed",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64-encoded settlement receipt confirming on-chain USDC payment execution (x402Version, transaction hash, network, and payer wallet)",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PostcodeIntelligenceResponse"
+                      }
+                    },
+                    "cohort_summary": {
+                      "$ref": "#/components/schemas/CohortSummary"
+                    },
+                    "_disclaimer": {
+                      "type": "string",
+                      "description": "Statutory non-advice legal disclaimer"
+                    },
+                    "_attribution": {
+                      "type": "string",
+                      "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement"
+                    },
+                    "_licensing": {
+                      "$ref": "#/components/schemas/LicensingInfo"
+                    },
+                    "_billing": {
+                      "$ref": "#/components/schemas/BillingReceipt"
+                    }
+                  }
+                }
+              },
+              "text/markdown": {
+                "schema": {
+                  "type": "string",
+                  "description": "GitHub Flavored Markdown export"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "description": "CSV data export"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest400"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired402"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound404"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimit429"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Demographics",
+          "Great Britain Property",
+          "Geospatial",
+          "Census"
+        ],
+        "summary": "Batch Enrich Great Britain Postcodes (Query String Alternative)",
+        "description": "High-throughput bulk enrichment of up to 50 Great Britain postcodes via a comma-separated query string (e.g. ?postcodes=SW1A1AA,BB73BB,EH11YZ). Defaults to view=\"brief\" (~80 tokens per postcode) to preserve context budget; pass view=\"full\" when all metrics are required.",
+        "operationId": "enrich_postcodes_batch_get",
+        "x-mcp-tool-name": "enrich_postcodes",
+        "x-aliases": [
+          "enrich_postcodes"
+        ],
+        "security": [
+          {
+            "x402Auth": []
+          }
+        ],
+        "x-x402-price": "$0.050",
+        "x-x402-amount": "50000",
+        "x-x402-maxAmountRequired": "50000",
+        "x-x402-network": "eip155:8453",
+        "x-x402-asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "x-x402-payTo": "0x8ab7568ac097523e81a94644235fcf19a2b85670",
+        "parameters": [
+          {
+            "name": "postcodes",
+            "in": "query",
+            "required": true,
+            "description": "Comma-separated list of 1 to 50 unit postcodes (e.g. SW1A1AA,BB73BB,EH11YZ). Note: ?pc= is also accepted at runtime as a shorthand query alias.",
+            "schema": {
+              "type": "string",
+              "example": "SW1A1AA,BB73BB,EH11YZ"
+            }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "Slice target view across batch results: brief (~80 tokens brief summary, default to preserve context window budget), full (complete dataset per postcode), property, demographics, education, healthcare, transit, or services",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "full",
+                "brief",
+                "summary",
+                "ai",
+                "property",
+                "demographics",
+                "education",
+                "schools",
+                "healthcare",
+                "health",
+                "transit",
+                "transport",
+                "services",
+                "infrastructure"
+              ],
+              "default": "brief"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "description": "Output format override: json (default), markdown (or md), csv (RFC 4180), flat",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json",
+                "markdown",
+                "md",
+                "csv",
+                "flat"
+              ],
+              "default": "json"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Batch enrichment and cohort summary completed",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64-encoded settlement receipt confirming on-chain USDC payment execution (x402Version, transaction hash, network, and payer wallet)",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PostcodeIntelligenceResponse"
+                      }
+                    },
+                    "cohort_summary": {
+                      "$ref": "#/components/schemas/CohortSummary"
+                    },
+                    "_disclaimer": {
+                      "type": "string",
+                      "description": "Statutory non-advice legal disclaimer"
+                    },
+                    "_attribution": {
+                      "type": "string",
+                      "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement"
+                    },
+                    "_licensing": {
+                      "$ref": "#/components/schemas/LicensingInfo"
+                    },
+                    "_billing": {
+                      "$ref": "#/components/schemas/BillingReceipt"
+                    }
+                  }
+                }
+              },
+              "text/markdown": {
+                "schema": {
+                  "type": "string",
+                  "description": "GitHub Flavored Markdown export"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "description": "CSV data export"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest400"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired402"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound404"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimit429"
+          }
+        }
+      }
+    },
+    "/api/v1/outcode/{outcode}": {
+      "get": {
+        "tags": [
+          "Demographics",
+          "Great Britain Property",
+          "Geospatial",
+          "Census"
+        ],
+        "summary": "Get Great Britain Outward Code District Summary",
+        "description": "Aggregates all postcodes within a Great Britain outward district (e.g. BB7, SW1A, EH1, CF10) to return district-wide median house prices, deprivation ranges, and top personas.",
+        "operationId": "get_outcode_district_summary",
+        "x-mcp-tool-name": "summarise_outcode",
+        "x-aliases": [
+          "summarise_outcode"
+        ],
+        "security": [
+          {
+            "x402Auth": []
+          }
+        ],
+        "x-x402-price": "$0.005",
+        "x-x402-amount": "5000",
+        "x-x402-maxAmountRequired": "5000",
+        "x-x402-network": "eip155:8453",
+        "x-x402-asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "x-x402-payTo": "0x8ab7568ac097523e81a94644235fcf19a2b85670",
+        "parameters": [
+          {
+            "name": "outcode",
+            "in": "path",
+            "required": true,
+            "description": "Great Britain outward postal district code (e.g. BB7, SW1A, EH1, CF10)",
+            "schema": {
+              "type": "string",
+              "example": "BB7"
+            }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "Slice target view: full (complete dataset, default), brief (or summary/ai, ~80 tokens brief), property, demographics, education, healthcare, transit, or services",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "full",
+                "brief",
+                "summary",
+                "ai",
+                "property",
+                "demographics",
+                "education",
+                "schools",
+                "healthcare",
+                "health",
+                "transit",
+                "transport",
+                "services",
+                "infrastructure"
+              ],
+              "default": "full"
+            }
+          },
+          {
+            "name": "exclude",
+            "in": "query",
+            "required": false,
+            "description": "Comma-separated domains to exclude from payload: schools, healthcare (e.g. exclude=schools,healthcare)",
+            "schema": {
+              "type": "string",
+              "example": "schools,healthcare"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "description": "Export format: json (default), flat, csv, or markdown/md (GitHub Flavored Markdown)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json",
+                "flat",
+                "csv",
+                "markdown",
+                "md"
+              ],
+              "default": "json"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "District summary generated successfully",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64-encoded settlement receipt confirming on-chain USDC payment execution (x402Version, transaction hash, network, and payer wallet)",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutcodeSummaryResponse"
+                }
+              },
+              "text/markdown": {
+                "schema": {
+                  "type": "string",
+                  "description": "GitHub Flavored Markdown export"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "description": "CSV data export"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest400"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired402"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound404"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimit429"
+          }
+        }
+      }
+    },
+    "/api/v1/attribution": {
+      "get": {
+        "tags": [
+          "Attribution",
+          "Legal",
+          "Licensing",
+          "Open Data"
+        ],
+        "summary": "Get Statutory Data Provenance & Attribution Register",
+        "description": "Returns the full machine-readable provenance, Crown copyright notices, Royal Mail database right statements, and Open Government Licence v3.0 links for all 19 underlying public sector datasets. Always free with zero charge.",
+        "operationId": "get_data_attribution",
+        "x-mcp-tool-name": "get_data_attribution",
+        "x-aliases": [],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Statutory attribution register returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LicensingInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dictionary": {
+      "get": {
+        "tags": [
+          "Demographics",
+          "Great Britain Property",
+          "Geospatial",
+          "Census"
+        ],
+        "summary": "Get Machine-Readable Data Dictionary",
+        "description": "Returns the complete field specification catalog, mathematical calculation formulas, statistical scales, and OGL v3.0 sovereign data provenance for all variables served by the API. Always free ($0.00 USDC, no x402 payment required). Tip for AI agents: pass ?domain=summary_for_ai or ?field=<name> to minimize LLM context token usage.",
+        "operationId": "get_data_dictionary",
+        "x-mcp-tool-name": "get_data_dictionary",
+        "x-aliases": [],
+        "security": [],
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "query",
+            "required": false,
+            "description": "Filter fields by domain category",
+            "schema": {
+              "type": "string",
+              "default": "all",
+              "enum": [
+                "all",
+                "summary_for_ai",
+                "property_and_energy",
+                "deprivation_deciles",
+                "census_demographics",
+                "digital_infrastructure",
+                "location",
+                "query_and_fallbacks",
+                "landmark_context",
+                "schools_and_education",
+                "healthcare_and_services",
+                "transit"
+              ]
+            }
+          },
+          {
+            "name": "field",
+            "in": "query",
+            "required": false,
+            "description": "Filter by specific field name",
+            "schema": {
+              "type": "string",
+              "example": "affluence_score_100"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data dictionary metadata returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "territorial_scope": {
+                      "type": "string",
+                      "example": "Great Britain (England, Scotland, Wales)"
+                    },
+                    "total_fields": {
+                      "type": "integer"
+                    },
+                    "domains": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "query": {
+                      "type": "object",
+                      "properties": {
+                        "domain": {
+                          "type": "string",
+                          "example": "all"
+                        },
+                        "field": {
+                          "type": "string",
+                          "example": "all"
+                        }
+                      }
+                    },
+                    "entries": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "domain": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "unit": {
+                            "type": "string"
+                          },
+                          "scale": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "formula": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          },
+                          "vintage": {
+                            "type": "string",
+                            "example": "Census 2021 Small Area Profiles"
+                          },
+                          "last_updated": {
+                            "type": "string",
+                            "example": "2023-03"
+                          },
+                          "update_frequency": {
+                            "type": "string",
+                            "example": "Decennial"
+                          },
+                          "example": {}
+                        }
+                      }
+                    },
+                    "_attribution": {
+                      "type": "string",
+                      "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement"
+                    },
+                    "_licensing": {
+                      "$ref": "#/components/schemas/LicensingInfo"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

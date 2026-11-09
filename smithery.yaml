@@ -1,0 +1,24 @@
+# Smithery.ai Remote MCP Configuration
+name: postcode-context-gb
+displayName: Postcode Context Great Britain
+description: >-
+  Great Britain (England, Scotland, Wales) Postcode Socio-Economic, Property Valuation (£/sqm), EPC Energy Efficiency,
+  Ofcom Broadband & Census Demographic Intelligence across 1.76M postcodes.
+  Supports native x402 v2 USDC micropayments on Base Mainnet (eip155:8453) and
+  MCP Marketplace license keys.
+homepage: https://api.postcodecontext.uk
+icon: https://api.postcodecontext.uk/logo.png
+remote:
+  url: https://api.postcodecontext.uk/mcp
+  transport: streamable-http
+  headers:
+    Authorization:
+      description: Optional Bearer license key (mcp_live_...) from mcp-marketplace.io or proxy secret. Leave blank to use native x402 USDC micropayments on Base.
+      required: false
+tags:
+  - uk-postcode
+  - demographics
+  - real-estate
+  - geospatial
+  - census
+  - x402

@@ -1,0 +1,151 @@
+{
+  "$schema": "https://a2a-protocol.org/schemas/v1/agent-card.json",
+  "name": "PostcodeContext.UK",
+  "description": "Stateless Great Britain Postcode Context, Property & Socio-Economic Intelligence API + Remote MCP Server for AI Agents with x402 micropayments.",
+  "version": "1.0.0",
+  "metadata": {
+    "database_version": "2026.10",
+    "last_updated": "2026-10-23",
+    "territorial_coverage": "Great Britain (England, Scotland, Wales)",
+    "licence": "Open Government Licence v3.0"
+  },
+  "provider": {
+    "organization": "Postcode Context UK",
+    "url": "https://api.postcodecontext.uk"
+  },
+  "documentation": {
+    "home": "https://api.postcodecontext.uk",
+    "llms_txt": "https://api.postcodecontext.uk/llms.txt",
+    "openapi": "https://api.postcodecontext.uk/openapi.json",
+    "dictionary": "https://api.postcodecontext.uk/data-dictionary",
+    "attribution": "https://api.postcodecontext.uk/api/v1/attribution"
+  },
+  "supportedInterfaces": [
+    {
+      "type": "rest",
+      "endpoint": "https://api.postcodecontext.uk",
+      "specification": "https://api.postcodecontext.uk/openapi.json"
+    },
+    {
+      "type": "mcp",
+      "endpoint": "https://api.postcodecontext.uk/mcp",
+      "transport": "streamable-http",
+      "discovery": "https://api.postcodecontext.uk/.well-known/mcp.json"
+    }
+  ],
+  "capabilities": {
+    "streaming": false,
+    "tools": true,
+    "resources": true
+  },
+  "securitySchemes": [
+    {
+      "type": "x402",
+      "protocol": "x402-v2",
+      "network": "eip155:8453",
+      "token": "USDC",
+      "tokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "recipient": "0x8ab7568ac097523e81a94644235fcf19a2b85670",
+      "pricing": {
+        "single_postcode": "$0.005 USDC",
+        "outcode_summary": "$0.005 USDC",
+        "compare_locations": "$0.010 USDC",
+        "batch_enrichment": "$0.050 USDC",
+        "data_dictionary": "Free",
+        "data_attribution": "Free"
+      }
+    }
+  ],
+  "skills": [
+    {
+      "id": "get_postcode_intelligence",
+      "name": "Lookup Great Britain Postcode Intelligence Profile",
+      "description": "Returns full demographic, housing market, EPC energy efficiency, broadband, and deprivation indices for a single Great Britain postcode (England, Scotland, Wales).",
+      "tags": [
+        "Demographics",
+        "Great Britain Property",
+        "Geospatial",
+        "Census"
+      ],
+      "examples": [
+        "Lookup profile for SW1A 1AA",
+        "Get brief summary for EH1 1YZ with view=brief"
+      ],
+      "pricing": {
+        "type": "exact",
+        "amount": "$0.005",
+        "token": "USDC",
+        "tokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "network": "eip155:8453",
+        "recipient": "0x8ab7568ac097523e81a94644235fcf19a2b85670"
+      }
+    },
+    {
+      "id": "compare_gb_postcodes",
+      "name": "Compare Great Britain Postcodes Side-by-Side",
+      "description": "Directly contrast 2 to 5 Great Britain postcodes across affluence, safety, housing cost per m², broadband, and family suitability.",
+      "tags": [
+        "Demographics",
+        "Great Britain Property",
+        "Geospatial",
+        "Census"
+      ],
+      "examples": [
+        "Compare SW1A 1AA and BB7 3BB side-by-side"
+      ],
+      "pricing": {
+        "type": "exact",
+        "amount": "$0.010",
+        "token": "USDC",
+        "tokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "network": "eip155:8453",
+        "recipient": "0x8ab7568ac097523e81a94644235fcf19a2b85670"
+      }
+    },
+    {
+      "id": "enrich_postcodes_batch",
+      "name": "Batch Bulk Great Britain Postcodes Cohort Enrichment",
+      "description": "High-throughput bulk enrichment of up to 50 Great Britain postcodes with cohort aggregation metrics. Defaults to view=\"brief\" (~80 tokens per postcode) to preserve context budget; pass view=\"full\" when all metrics are required.",
+      "tags": [
+        "Demographics",
+        "Great Britain Property",
+        "Geospatial",
+        "Census"
+      ],
+      "examples": [
+        "Batch enrich SW1A 1AA, BB7 3BB, and EH1 1YZ with view=brief"
+      ],
+      "pricing": {
+        "type": "exact",
+        "amount": "$0.050",
+        "token": "USDC",
+        "tokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "network": "eip155:8453",
+        "recipient": "0x8ab7568ac097523e81a94644235fcf19a2b85670"
+      }
+    },
+    {
+      "id": "get_outcode_district_summary",
+      "name": "Summarise Great Britain Outward Postal District",
+      "description": "High-level district demographic and property statistics (~150 tokens) for an outward postal code (e.g. SW1A, BB7, EH1, CF10).",
+      "tags": [
+        "Demographics",
+        "Great Britain Property",
+        "Geospatial",
+        "Census"
+      ],
+      "examples": [
+        "Summarise outward district BB7",
+        "Get property and demographic summary for outcode SW1A"
+      ],
+      "pricing": {
+        "type": "exact",
+        "amount": "$0.005",
+        "token": "USDC",
+        "tokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "network": "eip155:8453",
+        "recipient": "0x8ab7568ac097523e81a94644235fcf19a2b85670"
+      }
+    }
+  ]
+}

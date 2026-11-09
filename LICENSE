@@ -1,0 +1,21 @@
+Postcode Context Client Integration License & Terms Notice
+
+Copyright (c) 2026 Postcode Context (https://postcodecontext.uk). All rights reserved.
+
+1. PROPRIETARY SERVICE AND INFRASTRUCTURE
+The Postcode Context API, edge workers, data pipelines, and underlying database infrastructure are commercial services operated by Postcode Context. The server backend implementation and raw database tables are private and operated as a hosted service.
+
+2. TRANSPARENT METHODOLOGY & OPEN SCORING SPECIFICATION
+All mathematical calculation formulas, weighting dimensions, statistical benchmarks, and data dictionary definitions used for scoring (including the Affluence Score, Family Suitability Score, Commuter Connectivity Score, and Property Value Index) are openly documented, reproducible, and verifiable via the public Data Dictionary (https://api.postcodecontext.uk/data-dictionary) and the get_data_dictionary tool.
+
+3. CONNECTOR AND MANIFEST INTEGRATION GRANT
+Permission is hereby granted to developers, organizations, and AI agent frameworks to copy, configure, distribute, and integrate the client manifest files (server.json, glama.json), client wrapper scripts, and MCP configuration snippets contained in this repository solely for the purpose of connecting AI agents, IDEs, and client applications to the official Postcode Context API and Remote MCP endpoints (api.postcodecontext.uk).
+
+4. SERVICE ACCESS & COMMERCIAL TERMS
+All queries and tool invocations made to the remote endpoints (including https://api.postcodecontext.uk/mcp and https://api.postcodecontext.uk/api/v1/*) are governed by the Postcode Context Terms of Service (https://api.postcodecontext.uk/terms), Fair Exchange policies, and applicable per-call pricing ($0.005/request via x402 on Base or authorized API marketplace credentials).
+
+5. DATA PROVENANCE & CROWN COPYRIGHT
+Contains public sector information licensed under the Open Government Licence v3.0 (OGL v3.0). Contains OS data © Crown copyright and database right 2026. Contains Royal Mail data © Royal Mail copyright and database right 2026. Contains National Statistics data © Crown copyright 2026. Contains HM Land Registry data © Crown copyright 2026.
+
+6. DISCLAIMER
+THE MANIFESTS AND CLIENT SCRIPTS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR ACCURACY. IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE OF THE SERVICE OR INTEGRATION FILES.

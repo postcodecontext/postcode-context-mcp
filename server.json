@@ -1,0 +1,31 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "uk.postcodecontext/mcp",
+  "description": "UK location intelligence: Census demographics, property prices, EPC & IMD via x402 micropayments",
+  "version": "1.0.0",
+  "websiteUrl": "https://api.postcodecontext.uk",
+  "repository": {
+    "url": "https://github.com/postcodecontext/postcode-context-mcp",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.postcodecontext.uk/mcp"
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "keywords": [
+        "uk",
+        "postcode",
+        "property",
+        "demographics",
+        "epc",
+        "location",
+        "x402"
+      ],
+      "documentation": "https://api.postcodecontext.uk/llms.txt"
+    }
+  }
+}

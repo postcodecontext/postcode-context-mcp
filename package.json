@@ -1,0 +1,30 @@
+{
+  "name": "postcode-context-mcp",
+  "version": "1.0.0",
+  "description": "Real-world UK location intelligence Remote MCP Server (Census 2021, Land Registry property prices, EPC ratings, and IMD deprivation)",
+  "type": "module",
+  "bin": {
+    "postcode-context-mcp": "./bin/cli.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "remote-mcp",
+    "uk",
+    "postcode",
+    "demographics",
+    "property",
+    "epc",
+    "x402"
+  ],
+  "author": "Postcode Context <support@postcodecontext.uk> (https://postcodecontext.uk)",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/postcodecontext/postcode-context-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/postcodecontext/postcode-context-mcp/issues"
+  },
+  "homepage": "https://api.postcodecontext.uk"
+}

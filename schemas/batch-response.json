@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.postcodecontext.uk/schemas/batch-response.json",
+  "title": "BatchResponse",
+  "description": "High-throughput bulk postcode enrichment and cohort synthesis response.",
+  "type": "object",
+  "required": [
+    "cohort_summary",
+    "results"
+  ],
+  "properties": {
+    "cohort_summary": {
+      "$ref": "#/components/schemas/CohortSummary"
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/PostcodeIntelligenceResponse"
+      }
+    },
+    "_attribution": {
+      "type": "string"
+    },
+    "_billing": {
+      "$ref": "#/components/schemas/BillingReceipt"
+    }
+  },
+  "components": {
+    "schemas": {
+      "CohortSummary": {
+        "type": "object",
+        "description": "Macro cohort statistics across all enriched postcodes in the batch",
+        "properties": {
+          "total_requested": {
+            "type": "integer",
+            "example": 3
+          },
+          "total_matched": {
+            "type": "integer",
+            "example": 3
+          },
+          "average_affluence_score": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "example": 78
+          },
+          "average_house_price_gbp": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "example": 545000
+          },
+          "dominant_persona": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Affluent Suburban"
+          },
+          "top_3_highest_value_postcodes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "postcode": {
+                  "type": "string",
+                  "example": "SW1A 1AA"
+                },
+                "median_house_price_gbp": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "example": 1250000
+                },
+                "affluence_score_100": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "example": 94
+                }
+              }
+            }
+          }
+        }
+      },
+      "PostcodeIntelligenceResponse": {
+        "type": "object",
+        "description": "Comprehensive Great Britain postcode socio-economic profile. Sliced views prune optional metric blocks to optimize LLM context window token efficiency: full (complete 113-metric profile, default), brief/summary/ai (summary_for_ai, location, _attribution, _licensing, _billing, ~80 tokens), property (property_and_energy, digital_infrastructure), demographics (deprivation_deciles, census_demographics), education (schools_and_education), healthcare (healthcare_and_services), transit (transit), or services (education, healthcare, transit, digital_infrastructure). The _attribution property is strictly required and preserved across all view slices in accordance with statutory Open Government Licence v3.0, Ordnance Survey OpenData, and Crown copyright requirements.",
+        "required": [
+          "_attribution"
+        ],
+        "properties": {
+          "match_type": {
+            "type": "string",
+            "enum": [
+              "exact_unit",
+              "district_fallback"
+            ],
+            "example": "exact_unit",
+            "description": "Resolution accuracy: exact_unit (matched unit postcode in directory) or district_fallback (aggregated outcode postal district profile)"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "approximate"
+            ],
+            "example": "exact",
+            "description": "Downstream agent confidence indicator"
+          },
+          "requested_postcode": {
+            "type": "string",
+            "example": "SW1A 1AA",
+            "description": "Normalized display representation of the requested postcode"
+          },
+          "resolved_district": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "SW1A",
+            "description": "Outward postal district code if fallback was applied (null on exact unit matches)"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Exact unit postcode not yet in Census/ONS directory. Returning aggregated SW1A district profile.",
+            "description": "Explanatory contextual note for fallback profiles (null on exact unit matches)"
+          },
+          "summary_for_ai": {
+            "$ref": "#/components/schemas/SummaryForAI"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "property_and_energy": {
+            "$ref": "#/components/schemas/PropertyAndEnergy"
+          },
+          "deprivation_deciles": {
+            "$ref": "#/components/schemas/DeprivationDeciles"
+          },
+          "census_demographics": {
+            "$ref": "#/components/schemas/CensusDemographics"
+          },
+          "digital_infrastructure": {
+            "$ref": "#/components/schemas/DigitalInfrastructure"
+          },
+          "schools_and_education": {
+            "$ref": "#/components/schemas/EducationAndSchools"
+          },
+          "healthcare_and_services": {
+            "$ref": "#/components/schemas/HealthcareAndServices"
+          },
+          "transit": {
+            "$ref": "#/components/schemas/Transit"
+          },
+          "landmark_context": {
+            "$ref": "#/components/schemas/LandmarkContext"
+          },
+          "_disclaimer": {
+            "type": "string",
+            "description": "Statutory non-advice legal disclaimer"
+          },
+          "_attribution": {
+            "type": "string",
+            "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement (mandatory across all views)"
+          },
+          "_licensing": {
+            "$ref": "#/components/schemas/LicensingInfo"
+          },
+          "_billing": {
+            "$ref": "#/components/schemas/BillingReceipt"
+          }
+        }
+      },
+      "BillingReceipt": {
+        "type": "object",
+        "description": "Settled on-chain transaction receipt metadata under x402 payment specifications",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "example": "x402_paid_settled"
+          },
+          "transactionHash": {
+            "type": "string",
+            "example": "0x123..."
+          },
+          "payer": {
+            "type": "string",
+            "example": "0xabc..."
+          }
+        }
+      }
+    }
+  }
+}
