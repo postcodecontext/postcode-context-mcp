@@ -43,7 +43,7 @@ Protocol discovery, schema reference, documentation, and verification routes req
 | **LLMs.txt & MCP Guide** | `https://api.postcodecontext.uk/llms.txt` & `/mcp-guide` | Markdown / HTML | Autonomous agent documentation & integration guides |
 | **Discovery Manifests** | `/.well-known/x402`, `/.well-known/mcp.json`, `/.well-known/agent-card.json` | JSON | Standard x402, MCP, and A2A machine-discovery manifests |
 | **Crawler Verification** | `https://api.postcodecontext.uk/.well-known/glama.json` | JSON | Glama Remote Connector domain ownership claim |
-| **Registry Domain Auth** | `https://api.postcodecontext.uk/.well-known/mcp-registry-auth` | `text/plain` | Official MCP Registry HTTP verification route *(placeholder `p=` until Ed25519 key setup)* |
+| **Registry Domain Auth** | `https://api.postcodecontext.uk/.well-known/mcp-registry-auth` | `text/plain` | Official MCP Registry HTTP Ed25519 domain verification route |
 | **Legal Governance** | `/terms`, `/privacy`, `/legal` | HTML | Commercial Terms of Service, Privacy Notice & Disclaimers |
 
 ---
@@ -66,7 +66,7 @@ Every full postcode profile joins intelligence across **19 official Great Britai
    - `gigabit_availability_pct`: Percentage of domestic premises with access to gigabit-capable broadband (`>= 1,000 Mbps`, FTTP full fibre or gigabit cable).
    - `broadband_speed_tier_mbps`: Discrete fixed broadband availability tier (`350`, `120`, `80`, or `68.5 Mbps` baseline) derived from Ofcom availability brackets. *Note: This is a modelled availability tier, not an empirically measured speed-test average; separate FTTP-only and superfast availability percentages are not returned.*
 6. **Schools Metadata & Straight-Line Proximity (DfE GIAS, Scottish SEED, Welsh Government):**
-   - Nearest primary and nearest secondary school metadata (`id`, `name`, `phase`, `gender`, `religious_character`, `admissions_policy`) with straight-line geodesic distance (`distance_km`). *Note: Does NOT include Ofsted/Education Scotland inspection ratings or school admissions catchment boundaries.*
+   - Nearest primary and nearest secondary school metadata (`id`, `name`, `phase`, `gender`, `religious_character`, `admissions_policy`) with straight-line geodesic distance (`distance_km`). *Note: Does NOT include statutory school inspection ratings or school admissions catchment boundaries.*
 7. **Primary Care / GP Proximity & Statutory Ratings (CQC England, PHS/HIS Scotland, NWSSP/HIW Wales):**
    - `nearest_gp_surgery`: Nearest registered GP practice/surgery (`id`, `name`, `care_type`, straight-line `distance_km`, `regulator`, statutory `rating`, and `inspection_date` where available). *Note: Acute hospitals are not returned in API responses.*
 8. **Rail & Rapid Transit Connectivity (DfT NaPTAN & ORR Table 1410):**
@@ -201,6 +201,7 @@ Add to your project's `.cursor/mcp.json` or Global Cursor Settings:
 {
   "mcpServers": {
     "postcode-context": {
+      "type": "streamable-http",
       "url": "https://api.postcodecontext.uk/mcp"
     }
   }
@@ -214,19 +215,20 @@ Add to your project's `.cursor/mcp.json` or Global Cursor Settings:
 Add the remote server directly with one command:
 
 ```bash
-claude mcp add postcode-context https://api.postcodecontext.uk/mcp
+claude mcp add --transport http postcode-context https://api.postcodecontext.uk/mcp
 ```
 
 ---
 
-### 4. VS Code (Claude / Copilot / MCP Extensions)
+### 4. VS Code (Copilot / MCP)
 
-In `.vscode/settings.json`:
+In `.vscode/mcp.json`:
 
 ```json
 {
-  "mcp.servers": {
+  "servers": {
     "postcode-context": {
+      "type": "http",
       "url": "https://api.postcodecontext.uk/mcp"
     }
   }
@@ -374,7 +376,7 @@ console.log(response.content[0].text);
 
 ---
 
-## 📜 Sovereign Attribution & Licensing
+## 📜 Data Provenance, Attribution & Licensing
 
 - **Service & Proprietary Rights:** Postcode Context Great Britain is a proprietary commercial API and remote MCP service operated by Postcode Context (`postcodecontext.uk`). The Worker backend source code, data pipelines, and pre-built database tables are proprietary and private. However, **all scoring algorithms, weighting dimensions, mathematical formulas, and data dictionary definitions are openly documented and verifiable** in this README and via the `get_data_dictionary` tool / `/data-dictionary` endpoint ($0.00). The client manifest files and stdio wrapper in this repository are provided under the [Postcode Context Client Integration License](LICENSE) solely for connecting to the official endpoints. All queries remain subject to the [Postcode Context Terms of Service](https://api.postcodecontext.uk/terms).
 - **Public Sector Data & Statutory Attribution:** Underlying public sector datasets contain OS, ONS (Census 2021 / ONSPD), NRS Scotland (Census 2022), Ofcom (Connected Nations), MHCLG (Open EPC & IoD 2025), Scottish Government (Domestic EPC, SIMD 2020v2, SEED), Welsh Government (WIMD 2025 & Schools), DfE (GIAS), CQC, PHS/HIS Scotland, NWSSP/HIW Wales, DfT (NaPTAN), ORR (Table 1410), HM Land Registry, and Registers of Scotland data © Crown copyright and database right 2026, licensed under the **Open Government Licence v3.0 (OGL v3.0)**. Royal Mail postcode and Gridlink allocation data © Royal Mail copyright and database right 2026 is supplied under Gridlink licensing arrangements. Full dataset-by-dataset provenance is published at `/api/v1/attribution`.

@@ -2,7 +2,7 @@
   "$schema": "https://glama.ai/mcp/schemas/server.json",
   "name": "postcode-context-mcp",
   "displayName": "Postcode Context Great Britain",
-  "description": "Real-world UK location intelligence: Census 2021 demographics, HM Land Registry property prices, EPC ratings, Ofcom broadband connectivity, and IMD deprivation deciles across 1.76M Great Britain postcodes.",
+  "description": "Real-world UK location intelligence across 1.76M Great Britain postcodes: Census 2021/2022 demographics, HMLR & RoS property prices, EPC ratings, Ofcom broadband, IMD deprivation deciles, schools, GP healthcare, and transit.",
   "category": "Location",
   "tags": [
     "location",

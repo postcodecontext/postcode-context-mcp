@@ -3,7 +3,7 @@
   "info": {
     "title": "Postcode Context - Great Britain Demographics & Property Intelligence API",
     "version": "1.0.0",
-    "description": "Give AI agents real-world Great Britain location intelligence. High-performance, 100% stateless Great Britain postcode context API and Remote MCP Server running on Cloudflare Workers edge nodes. Turn any postcode into structured property, demographic, energy, school, healthcare, and connectivity context in one call. Covers England, Scotland, and Wales (Northern Ireland BT postcodes strictly excluded to avoid proprietary PAF or LPS fees). Unifies 19 statutory open datasets: ONS Census 2021, ONSPD 2026, Ordnance Survey OS OpenData, Royal Mail Gridlink allocation, HM Land Registry 3-year rolling transactions (2024–2026), Registers of Scotland property transactions (2023–2025), Open EPC domestic register, Scottish EPC Register, English Indices of Deprivation (IoD 2025), Welsh WIMD 2025, Scottish SIMD 2020v2, Ofcom Connected Nations 2026 broadband, DfE Get Information About Schools (GIAS), Care Quality Commission (CQC) healthcare registries, Scottish/Welsh schools directories, NHS Scotland/Wales directories, NaPTAN transit nodes, and ORR station footfall. Features pre-synthesised AI affluence scores, multi-criteria comparisons, and dense context briefings. Settle per-request via x402 v2 (USDC on Base Mainnet eip155:8453). Active baseline v2026.10 updated October 2026. Not for credit, insurance, lending, employment, or tenant-screening decisions.",
+    "description": "Give AI agents real-world Great Britain location intelligence. High-performance, 100% stateless Great Britain postcode context API and Remote MCP Server running on Cloudflare Workers edge nodes. Turn any postcode into structured property, demographic, energy, school, healthcare, and connectivity context in one call. Covers England, Scotland, and Wales (Northern Ireland BT postcodes strictly excluded to avoid proprietary PAF or LPS fees). Unifies 19 statutory open datasets: ONS Census 2021, NRS Scotland Census 2022, ONSPD 2026, Ordnance Survey OS OpenData, Royal Mail Gridlink allocation, HM Land Registry 3-year rolling transactions (2024–2026), Registers of Scotland property transactions (2023–2025), Open EPC domestic register, Scottish EPC Register, English Indices of Deprivation (IoD 2025), Welsh WIMD 2025, Scottish SIMD 2020v2, Ofcom Connected Nations 2026 broadband, DfE Get Information About Schools (GIAS), Care Quality Commission (CQC) healthcare registries, Scottish/Welsh schools directories, NHS Scotland/Wales directories, NaPTAN transit nodes, and ORR station footfall. Features pre-synthesised AI affluence scores, multi-criteria comparisons, and dense context briefings. Settle per-request via x402 v2 (USDC on Base Mainnet eip155:8453) or RapidAPI Gateway. Active baseline v2026.10 updated October 2026. Not for credit, insurance, lending, employment, or tenant-screening decisions.",
     "contact": {
       "name": "Postcode Context Support",
       "url": "https://api.postcodecontext.uk"
@@ -111,7 +111,7 @@
             ],
             "minimum": 1,
             "maximum": 100,
-            "description": "Composite family suitability score from 1 to 100 (weighted: 40% statutory crime safety decile, 30% statutory education/skills deprivation decile, 30% child and parenting-age demographic density)"
+            "description": "Composite family suitability score from 1 to 100 (weighted: 40% statutory crime safety decile, 30% statutory education/skills deprivation decile adjusted by -2 pts/km capped at -20 when nearest school >3km geodesic distance, 30% child and parenting-age demographic density)"
           },
           "commuter_connectivity_score_100": {
             "type": [
@@ -120,7 +120,7 @@
             ],
             "minimum": 1,
             "maximum": 100,
-            "description": "Composite multi-modal connectivity score from 1 to 100 (evaluating straight-line geodesic distance to nearest rail/rapid transit station, strategic intercity hub tier, zero-car transit reliance density, broadband speed tier, and affluence)"
+            "description": "Composite multi-modal connectivity score from 1 to 100 (45% straight-line geodesic distance to nearest rail/rapid transit station, up to +15 pts strategic intercity hub bonus, 20% zero-car transit reliance density, 15% broadband speed tier & gigabit coverage, 10% affluence)"
           },
           "property_value_index": {
             "type": [
@@ -411,14 +411,14 @@
               "integer",
               "null"
             ],
-            "example": 6800
+            "example": 5433
           },
           "est_median_household_income_gbp": {
             "type": [
               "integer",
               "null"
             ],
-            "example": 29500,
+            "example": 95000,
             "description": "Heuristic small-area estimate of annual median gross disposable household income in GBP (LSOA/Data Zone level) derived from a linear formula weighting DWP/HMRC income deprivation deciles, Census NS-SeC managerial occupation shares, and Level 4 qualifications, clamped at £21,000–£95,000. Not an observed Census return."
           },
           "tenure_breakdown_pct": {
@@ -1028,7 +1028,7 @@
           },
           "total_postcodes": {
             "type": "integer",
-            "example": 1420,
+            "example": 1228,
             "description": "Total number of live registered unit postcodes aggregated within this outward district"
           },
           "district_median_house_price_gbp": {
@@ -1036,7 +1036,7 @@
               "integer",
               "null"
             ],
-            "example": 358398,
+            "example": 280998,
             "description": "District-wide median residential transaction price in GBP from 3-year rolling sales (HMLR / RoS)"
           },
           "district_avg_price_per_sqm_gbp": {
@@ -1044,14 +1044,14 @@
               "integer",
               "null"
             ],
-            "example": 2480,
+            "example": 4067,
             "description": "District-wide mean transaction price per internal square metre in GBP"
           },
           "average_affluence_score_100": {
             "type": "integer",
             "minimum": 1,
             "maximum": 100,
-            "example": 62,
+            "example": 71,
             "description": "District-wide mean composite affluence score on a 1–100 scale"
           },
           "dominant_affluence_tier": {
@@ -1074,7 +1074,7 @@
               "max"
             ],
             "example": {
-              "min": 3,
+              "min": 4,
               "max": 10
             },
             "properties": {
@@ -1085,7 +1085,7 @@
                 ],
                 "minimum": 1,
                 "maximum": 10,
-                "example": 3,
+                "example": 4,
                 "description": "Lowest (most deprived) IMD decile recorded in any constituent LSOA or Data Zone in this district"
               },
               "max": {
@@ -1104,11 +1104,12 @@
             "type": "array",
             "items": {
               "type": "string",
-              "example": "Rural Agrarian & Village Communities"
+              "example": "Established Mixed-Generation Suburban Residents"
             },
             "example": [
-              "Rural Agrarian & Village Communities",
-              "Comfortable Suburban Achievers"
+              "Established Mixed-Generation Suburban Residents",
+              "Affluent Coastal & Countryside Retirees",
+              "Affluent Suburban Commuter Families"
             ],
             "description": "Ranked list of dominant demographic and socio-economic persona archetypes in the district"
           },
@@ -1129,7 +1130,7 @@
           },
           "district_context_briefing": {
             "type": "string",
-            "example": "Outward postal district BB7 encompasses 1420 registered postcode sector areas in Ribble Valley (North West). Baseline property values median at £358,398 (£2,480/sqm) with composite district affluence scored at 62/100 (Mid-Market). IMD deprivation ranges from decile 3 to 10.",
+            "example": "Outward postal district BB7 encompasses 1228 registered postcode units in Ribble Valley (North West England). Baseline property values median at £280,998 (£4,067/sqm) with composite district affluence scored at 71/100 (Mid-Market). IMD deprivation ranges from decile 4 to 10.",
             "description": "Pre-synthesized natural language summary designed for LLM context window ingestion"
           },
           "schools_and_education": {
@@ -1207,7 +1208,7 @@
               },
               "price_per_sqm_gbp": {
                 "type": "integer",
-                "example": 6462
+                "example": 5000
               }
             }
           },
@@ -1233,7 +1234,7 @@
               },
               "score": {
                 "type": "integer",
-                "example": 82
+                "example": 79
               }
             }
           },
@@ -1281,7 +1282,7 @@
                     "number",
                     "null"
                   ],
-                  "example": 120
+                  "example": 350
                 },
                 "family_suitability_score_100": {
                   "type": "number",
@@ -1318,7 +1319,7 @@
           },
           "synthesis_notes": {
             "type": "string",
-            "example": "SW1A 1AA commands higher property prices per sqm and high affluence (94), while BB7 3BB (Dunsop Bridge, centre of GB) offers superior family suitability and lowest crime."
+            "example": "SW1A 1AA commands higher property prices per sqm and high affluence (94), while BB7 3BB (Ribble Valley, Lancashire) offers lower entry cost (£5,000/sqm), higher family suitability (79), and lowest crime (Decile 10)."
           },
           "comparability_caveats": {
             "type": "array",
@@ -1363,7 +1364,7 @@
               "string",
               "null"
             ],
-            "example": "Affluent Suburban"
+            "example": "Suburban Commuter Families"
           },
           "top_3_highest_value_postcodes": {
             "type": "array",
@@ -2562,7 +2563,7 @@
           "Open Data"
         ],
         "summary": "Get Statutory Data Provenance & Attribution Register",
-        "description": "Returns the full machine-readable provenance, Crown copyright notices, Royal Mail database right statements, and Open Government Licence v3.0 links for all 19 underlying public sector datasets. Always free with zero charge.",
+        "description": "Returns the full machine-readable provenance, Crown copyright notices, Royal Mail Gridlink database right statements, and Open Government Licence v3.0 links for all 19 underlying public sector datasets ($0.00 USDC; no payment or authentication required; subject to Terms of Service).",
         "operationId": "get_data_attribution",
         "x-mcp-tool-name": "get_data_attribution",
         "x-aliases": [],
@@ -2590,7 +2591,7 @@
           "Census"
         ],
         "summary": "Get Machine-Readable Data Dictionary",
-        "description": "Returns the complete field specification catalog, mathematical calculation formulas, statistical scales, and OGL v3.0 sovereign data provenance for all variables served by the API. Always free ($0.00 USDC, no x402 payment required). Tip for AI agents: pass ?domain=summary_for_ai or ?field=<name> to minimize LLM context token usage.",
+        "description": "Returns the complete field specification catalog, mathematical calculation formulas, statistical scales, and statutory data provenance for all variables served by the API ($0.00 USDC; no payment or authentication required; subject to Terms of Service). Tip for AI agents: pass ?domain=summary_for_ai or ?field=<name> to minimize LLM context token usage.",
         "operationId": "get_data_dictionary",
         "x-mcp-tool-name": "get_data_dictionary",
         "x-aliases": [],
@@ -2615,6 +2616,7 @@
                 "query_and_fallbacks",
                 "landmark_context",
                 "schools_and_education",
+                "education_and_schools",
                 "healthcare_and_services",
                 "transit"
               ]

@@ -1,7 +1,7 @@
 {
   "name": "postcode-context-mcp",
   "version": "1.0.0",
-  "description": "Real-world UK location intelligence Remote MCP Server (Census 2021, Land Registry property prices, EPC ratings, and IMD deprivation)",
+  "description": "Real-world UK location intelligence Remote MCP Server (Census 2021/2022, HMLR & RoS property prices, EPC ratings, IMD deprivation, schools, GP healthcare, and transit)",
   "type": "module",
   "bin": {
     "postcode-context-mcp": "./bin/cli.js"
