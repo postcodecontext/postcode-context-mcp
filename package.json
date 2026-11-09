@@ -6,6 +6,10 @@
   "bin": {
     "postcode-context-mcp": "./bin/cli.js"
   },
+  "scripts": {
+    "build": "node --check ./bin/cli.js",
+    "start": "node ./bin/cli.js"
+  },
   "keywords": [
     "mcp",
     "model-context-protocol",
