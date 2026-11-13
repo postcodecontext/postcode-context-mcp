@@ -370,7 +370,7 @@ console.log(response.content[0].text);
     "landmark_category": "Royal Residence",
     "demographic_distortion_note": "Census demographics reflect residential blocks in Westminster 018C (Wellington Barracks and rental flats towards Victoria), not the Royal Household."
   },
-  "_attribution": "Contains OS data © Crown copyright and database right 2026. Contains Royal Mail data © Royal Mail copyright and database right 2026. Contains National Statistics data © Crown copyright and database right 2026. Contains HM Land Registry data © Crown copyright 2026. Contains Registers of Scotland data © Crown copyright and database right 2026. Contains public sector information licensed under the Open Government Licence v3.0 (MHCLG Open EPC, Scottish Government Domestic EPC, English/Welsh/Scottish Indices of Deprivation, Ofcom Connected Nations, DfE GIAS, CQC, Scottish Government, Welsh Government, Public Health Scotland, Healthcare Inspectorate Wales)."
+  "_attribution": "Contains OS data © Crown copyright and database right 2026. Contains Royal Mail data © Royal Mail copyright and database right 2026. Contains public sector information licensed under OGL v3.0. For research/context only; NOT for credit, lending, or tenant screening. Full attribution & terms: https://api.postcodecontext.uk/legal"
 }
 ```
 

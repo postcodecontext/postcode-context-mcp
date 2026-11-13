@@ -829,7 +829,7 @@
       },
       "PostcodeIntelligenceResponse": {
         "type": "object",
-        "description": "Comprehensive Great Britain postcode socio-economic profile. Sliced views prune optional metric blocks to optimize LLM context window token efficiency: full (complete 113-metric profile, default), brief/summary/ai (summary_for_ai, location, _attribution, _licensing, _billing, ~80 tokens), property (property_and_energy, digital_infrastructure), demographics (deprivation_deciles, census_demographics), education (schools_and_education), healthcare (healthcare_and_services), transit (transit), or services (education, healthcare, transit, digital_infrastructure). The _attribution property is strictly required and preserved across all view slices in accordance with statutory Open Government Licence v3.0, Ordnance Survey OpenData, and Crown copyright requirements.",
+        "description": "Comprehensive Great Britain postcode socio-economic profile. Sliced views prune optional metric blocks to optimize LLM context window token efficiency: full (complete 113-metric profile, default), brief/summary/ai (summary_for_ai, location, _attribution, _billing, ~80 tokens), property (property_and_energy, digital_infrastructure), demographics (deprivation_deciles, census_demographics), education (schools_and_education), healthcare (healthcare_and_services), transit (transit), or services (education, healthcare, transit, digital_infrastructure). The compact _attribution property is strictly required and preserved across all view slices in accordance with statutory Open Government Licence v3.0, Ordnance Survey OpenData, and Royal Mail requirements, linking to full 19-source provenance at /legal and /api/v1/attribution.",
         "required": [
           "_attribution"
         ],
@@ -903,19 +903,90 @@
           "landmark_context": {
             "$ref": "#/components/schemas/LandmarkContext"
           },
-          "_disclaimer": {
-            "type": "string",
-            "description": "Statutory non-advice legal disclaimer"
-          },
           "_attribution": {
             "type": "string",
-            "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement (mandatory across all views)"
-          },
-          "_licensing": {
-            "$ref": "#/components/schemas/LicensingInfo"
+            "description": "Compact statutory Crown copyright, Royal Mail, and Open Government Licence v3.0 attribution notice with non-reliance caveat and link to full 19-source terms (mandatory across all views)"
           },
           "_billing": {
             "$ref": "#/components/schemas/BillingReceipt"
+          }
+        }
+      },
+      "PostcodeCollectionItem": {
+        "type": "object",
+        "description": "Individual Great Britain postcode profile returned inside multi-postcode collection responses (/api/v1/compare and /api/v1/batch). Supports view slicing (full, brief/summary/ai, property, demographics, education, healthcare, transit, services). Compact statutory attribution (_attribution) and billing receipt (_billing) are emitted once at the top level of the response envelope rather than duplicated per item.",
+        "required": [
+          "location"
+        ],
+        "properties": {
+          "match_type": {
+            "type": "string",
+            "enum": [
+              "exact_unit",
+              "district_fallback"
+            ],
+            "example": "exact_unit",
+            "description": "Resolution accuracy: exact_unit (matched unit postcode in directory) or district_fallback (aggregated outcode postal district profile)"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "approximate"
+            ],
+            "example": "exact",
+            "description": "Downstream agent confidence indicator"
+          },
+          "requested_postcode": {
+            "type": "string",
+            "example": "SW1A 1AA",
+            "description": "Normalized display representation of the requested postcode"
+          },
+          "resolved_district": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "SW1A",
+            "description": "Outward postal district code if fallback was applied (null on exact unit matches)"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Exact unit postcode not yet in Census/ONS directory. Returning aggregated SW1A district profile.",
+            "description": "Explanatory contextual note for fallback profiles (null on exact unit matches)"
+          },
+          "summary_for_ai": {
+            "$ref": "#/components/schemas/SummaryForAI"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "property_and_energy": {
+            "$ref": "#/components/schemas/PropertyAndEnergy"
+          },
+          "deprivation_deciles": {
+            "$ref": "#/components/schemas/DeprivationDeciles"
+          },
+          "census_demographics": {
+            "$ref": "#/components/schemas/CensusDemographics"
+          },
+          "digital_infrastructure": {
+            "$ref": "#/components/schemas/DigitalInfrastructure"
+          },
+          "schools_and_education": {
+            "$ref": "#/components/schemas/EducationAndSchools"
+          },
+          "healthcare_and_services": {
+            "$ref": "#/components/schemas/HealthcareAndServices"
+          },
+          "transit": {
+            "$ref": "#/components/schemas/Transit"
+          },
+          "landmark_context": {
+            "$ref": "#/components/schemas/LandmarkContext"
           }
         }
       },
@@ -1145,19 +1216,10 @@
             "$ref": "#/components/schemas/Transit",
             "description": "Public transport nodes proximate to the district"
           },
-          "_disclaimer": {
-            "type": "string",
-            "example": "PostcodeContext provides automated statistical intelligence for informational purposes only.",
-            "description": "Statutory non-advice legal disclaimer"
-          },
           "_attribution": {
             "type": "string",
-            "example": "Contains OS data © Crown copyright and database right 2026. Contains Royal Mail data © Royal Mail copyright and Database right 2026. Contains National Records of Scotland data. Licensed under OGL v3.0.",
-            "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement"
-          },
-          "_licensing": {
-            "$ref": "#/components/schemas/LicensingInfo",
-            "description": "Statutory attribution and licensing metadata across data providers"
+            "example": "Contains OS data © Crown copyright and database right 2026. Contains Royal Mail data © Royal Mail copyright and database right 2026. Contains public sector information licensed under OGL v3.0. For research/context only; NOT for credit, lending, or tenant screening. Full attribution & terms: https://api.postcodecontext.uk/legal",
+            "description": "Compact statutory Crown copyright, Royal Mail, and Open Government Licence v3.0 attribution statement with link to full 19-source provenance"
           },
           "_billing": {
             "$ref": "#/components/schemas/BillingReceipt",
@@ -1887,26 +1949,24 @@
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": [
+                    "postcodes",
+                    "comparison_synthesis",
+                    "_attribution"
+                  ],
                   "properties": {
                     "postcodes": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/PostcodeIntelligenceResponse"
+                        "$ref": "#/components/schemas/PostcodeCollectionItem"
                       }
                     },
                     "comparison_synthesis": {
                       "$ref": "#/components/schemas/ComparisonSynthesis"
                     },
-                    "_disclaimer": {
-                      "type": "string",
-                      "description": "Statutory non-advice legal disclaimer"
-                    },
                     "_attribution": {
                       "type": "string",
-                      "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement"
-                    },
-                    "_licensing": {
-                      "$ref": "#/components/schemas/LicensingInfo"
+                      "description": "Compact statutory Crown copyright, Royal Mail, and Open Government Licence v3.0 attribution notice with non-reliance caveat and link to full 19-source terms"
                     },
                     "_billing": {
                       "$ref": "#/components/schemas/BillingReceipt"
@@ -2037,26 +2097,24 @@
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": [
+                    "postcodes",
+                    "comparison_synthesis",
+                    "_attribution"
+                  ],
                   "properties": {
                     "postcodes": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/PostcodeIntelligenceResponse"
+                        "$ref": "#/components/schemas/PostcodeCollectionItem"
                       }
                     },
                     "comparison_synthesis": {
                       "$ref": "#/components/schemas/ComparisonSynthesis"
                     },
-                    "_disclaimer": {
-                      "type": "string",
-                      "description": "Statutory non-advice legal disclaimer"
-                    },
                     "_attribution": {
                       "type": "string",
-                      "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement"
-                    },
-                    "_licensing": {
-                      "$ref": "#/components/schemas/LicensingInfo"
+                      "description": "Compact statutory Crown copyright, Royal Mail, and Open Government Licence v3.0 attribution notice with non-reliance caveat and link to full 19-source terms"
                     },
                     "_billing": {
                       "$ref": "#/components/schemas/BillingReceipt"
@@ -2211,26 +2269,24 @@
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": [
+                    "results",
+                    "cohort_summary",
+                    "_attribution"
+                  ],
                   "properties": {
                     "results": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/PostcodeIntelligenceResponse"
+                        "$ref": "#/components/schemas/PostcodeCollectionItem"
                       }
                     },
                     "cohort_summary": {
                       "$ref": "#/components/schemas/CohortSummary"
                     },
-                    "_disclaimer": {
-                      "type": "string",
-                      "description": "Statutory non-advice legal disclaimer"
-                    },
                     "_attribution": {
                       "type": "string",
-                      "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement"
-                    },
-                    "_licensing": {
-                      "$ref": "#/components/schemas/LicensingInfo"
+                      "description": "Compact statutory Crown copyright, Royal Mail, and Open Government Licence v3.0 attribution notice with non-reliance caveat and link to full 19-source terms"
                     },
                     "_billing": {
                       "$ref": "#/components/schemas/BillingReceipt"
@@ -2361,26 +2417,24 @@
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": [
+                    "results",
+                    "cohort_summary",
+                    "_attribution"
+                  ],
                   "properties": {
                     "results": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/PostcodeIntelligenceResponse"
+                        "$ref": "#/components/schemas/PostcodeCollectionItem"
                       }
                     },
                     "cohort_summary": {
                       "$ref": "#/components/schemas/CohortSummary"
                     },
-                    "_disclaimer": {
-                      "type": "string",
-                      "description": "Statutory non-advice legal disclaimer"
-                    },
                     "_attribution": {
                       "type": "string",
-                      "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement"
-                    },
-                    "_licensing": {
-                      "$ref": "#/components/schemas/LicensingInfo"
+                      "description": "Compact statutory Crown copyright, Royal Mail, and Open Government Licence v3.0 attribution notice with non-reliance caveat and link to full 19-source terms"
                     },
                     "_billing": {
                       "$ref": "#/components/schemas/BillingReceipt"
@@ -2720,10 +2774,7 @@
                     },
                     "_attribution": {
                       "type": "string",
-                      "description": "Official statutory Crown copyright and Open Government Licence v3.0 attribution statement"
-                    },
-                    "_licensing": {
-                      "$ref": "#/components/schemas/LicensingInfo"
+                      "description": "Compact statutory Crown copyright, Royal Mail, and Open Government Licence v3.0 attribution notice"
                     }
                   }
                 }
